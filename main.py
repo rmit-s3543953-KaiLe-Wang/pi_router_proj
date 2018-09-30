@@ -4,12 +4,15 @@ import Adafruit_CharLCD as LCD
 import sys
 import os
 
-GPIO.setmode(GPIO.BCM) # set board mode to Broadcom
-##LED SETUP
-GPIO.setup(3,GPIO.OUT,initial=GPIO.LOW) # set up pin 18
-GPIO.setup(4,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
-GPIO.add_event_detect(4,GPIO.RISING)
 buttonStat=False
+
+def init():
+    GPIO.setmode(GPIO.BCM) # set board mode to Broadcom
+    ##LED SETUP
+    GPIO.setup(3,GPIO.OUT,initial=GPIO.LOW) # set up pin 18
+    GPIO.setup(4,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
+    GPIO.add_event_detect(4,GPIO.RISING)
+    service('OFF')
 
 def my_gpioCallback(channel):
     global buttonStat
@@ -29,15 +32,19 @@ def service(status):
         print('ON')
         GPIO.output(3,1)
         os.system('sudo ifup usb0')
+        os.system('sudo systemctl start hostapd')
+        os.system('sudo iptables -t nat -I POSTROUTING -o usb0 -s 192.168.0.0/24 -j MASQUERADE')
         os.system('sudo ifconfig wlan0 up')
     elif status=='OFF':
         print('OFF')
         GPIO.output(3,0)
         os.system('sudo ifdown usb0')
+        os.system('sudo systemctl stop hostapd')
         os.system('sudo ifconfig wlan0 down')
     
 
 if __name__=="__main__":
+    init()
     GPIO.add_event_callback(4,my_gpioCallback)
     temp = buttonStat
     while True:    

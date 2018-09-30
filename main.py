@@ -32,16 +32,24 @@ def service(status):
         print('ON')
         GPIO.output(3,1)
         os.system('sudo ifup usb0')
-        os.system('sudo systemctl start hostapd')
-        os.system('sudo iptables -t nat -I POSTROUTING -o usb0 -s 192.168.0.0/24 -j MASQUERADE')
+        os.system('sudo samba')
+        GPIO.output(3,0)
         os.system('sudo ifconfig wlan0 up')
+        GPIO.output(3,1)
+        os.system('sudo systemctl start hostapd')
+        GPIO.output(3,0)
+        os.system('sudo iptables -t nat -I POSTROUTING -o usb0 -s 192.168.0.0/24 -j MASQUERADE')
+        GPIO.output(3,1)
+
     elif status=='OFF':
         print('OFF')
-        GPIO.output(3,0)
+        GPIO.output(3,1)
         os.system('sudo ifdown usb0')
+        GPIO.output(3,0)
         os.system('sudo systemctl stop hostapd')
-        os.system('sudo ifconfig wlan0 down')
-    
+        GPIO.output(3,1)
+        #os.system('sudo ifconfig wlan0 down')
+        GPIO.output(3,0)
 
 if __name__=="__main__":
     init()
